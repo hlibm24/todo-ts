@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import {useState, useEffect} from 'react'
 
 interface Task {
   id: number;
@@ -8,7 +8,14 @@ interface Task {
 
 
 function App() {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Task[]>(()=> {
+    const saved = localStorage.getItem('tasks');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+    useEffect(()=> {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }, [tasks]);
 
   const addTask = () => {
     const newTask: Task = {
@@ -18,6 +25,18 @@ function App() {
     }
     setTasks(prev => [...prev, newTask]);
   }
+  
+  const deleteTask = (id: number) => {
+    const newTasks = tasks.filter(task=> task.id !== id);
+    setTasks(newTasks);
+    //setTasks(prev => prev.filter(task => task.id !== id));
+  }
+
+  const toggleTask = (id: number) => {
+    setTasks(prev => prev.map(task =>
+      task.id === id ? {...task, completed: !task.completed} : task
+    ))
+  }
 
   return (
     <div className='main-container'>
@@ -25,7 +44,16 @@ function App() {
       onClick={addTask}>Add Task</button>
       <ul className='task-list'>
       {tasks.map(task => (
-        <li key={task.id} className='task'></li>
+        <li key={task.id}
+        style={{textDecoration: task.completed ? 'line-through' : 'none'}}
+        className='task'>
+          <button className='delete'
+          onClick={() => deleteTask(task.id)}>X</button>
+
+          {task.text}
+          
+          <button className='toggle'
+          onClick={() => toggleTask(task.id)}>{task.completed ? '✅' : '⬜'}</button></li>
       ))}  
       </ul>
     </div>
@@ -33,3 +61,5 @@ function App() {
 }
 
 export default App
+
+
