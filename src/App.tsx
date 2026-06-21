@@ -8,6 +8,7 @@ interface Task {
 
 
 function App() {
+  const [editedId, setEditedId] = useState<number | null>(null);
   const [tasks, setTasks] = useState<Task[]>(()=> {
     const saved = localStorage.getItem('tasks');
     return saved ? JSON.parse(saved) : [];
@@ -38,6 +39,14 @@ function App() {
     ))
   }
 
+  const updateTaskText = (id: number, newText: string) => {
+    setTasks(prev =>
+      prev.map(task =>
+        task.id === id ? {...task, text: newText} : task
+      )
+    )
+  }
+
   return (
     <div className='main-container'>
       <button className='addTask'
@@ -50,10 +59,24 @@ function App() {
           <button className='delete'
           onClick={() => deleteTask(task.id)}>X</button>
 
-          {task.text}
+          {editedId === task.id ? (
+            <input type="text"
+            value={task.text}
+            onChange={(e)=> updateTaskText(task.id, e.target.value)}
+            onBlur={()=> setEditedId(null)}
+            onKeyDown={(e)=> {
+              if(e.key === 'Enter') setEditedId(null)
+            }}
+            autoFocus/>
+          ) : (
+            <span onDoubleClick={()=> setEditedId(task.id)}>
+              {task.text || 'Empty'}
+            </span>
+          )}
           
           <button className='toggle'
-          onClick={() => toggleTask(task.id)}>{task.completed ? '✅' : '⬜'}</button></li>
+          onClick={() => toggleTask(task.id)}>{task.completed ? '✅' : '⬜'}</button>
+        </li>
       ))}  
       </ul>
     </div>
